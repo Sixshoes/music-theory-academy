@@ -209,52 +209,37 @@ const theme = createTheme({
 // Export theme for use in other components if needed
 export { theme };
 
-// 全局音頻初始化組件
-const AudioInitializer = () => {
-  const [showPrompt, setShowPrompt] = useState(true);
+// 音頻上下文初始化組件
+function AudioInitializer() {
+  const [audioInitialized, setAudioInitialized] = useState(false);
   
+  // 處理用戶交互，初始化音頻上下文
   const initializeAudio = () => {
-    // 初始化 Tone.js
-    if (Tone.context.state !== 'running') {
-      Tone.context.resume().then(() => {
+    if (!audioInitialized) {
+      Tone.start().then(() => {
         console.log('音頻上下文已啟動');
-        setShowPrompt(false);
-      });
-    } else {
-      setShowPrompt(false);
+        setAudioInitialized(true);
+      }).catch(e => console.error('啟動音頻上下文失敗:', e));
     }
   };
   
-  // 點擊頁面任何地方自動初始化
   useEffect(() => {
-    const handleClick = () => {
+    // 添加全局點擊事件監聽器
+    const handleFirstInteraction = () => {
       initializeAudio();
+      // 完成初始化後移除事件監聽器
+      document.removeEventListener('click', handleFirstInteraction);
     };
     
-    window.addEventListener('click', handleClick, { once: true });
+    document.addEventListener('click', handleFirstInteraction);
     
     return () => {
-      window.removeEventListener('click', handleClick);
+      document.removeEventListener('click', handleFirstInteraction);
     };
   }, []);
   
-  return (
-    <Snackbar
-      open={showPrompt}
-      message="點擊頁面任意處或此按鈕以啟用音頻功能，獲得完整體驗"
-      action={
-        <Button color="secondary" size="small" onClick={initializeAudio}>
-          <VolumeUp style={{ marginRight: '8px' }} />
-          啟用音頻
-        </Button>
-      }
-      style={{ 
-        bottom: '80px',
-        boxShadow: '0 0 10px rgba(0, 242, 254, 0.5)' 
-      }}
-    />
-  );
-};
+  return null; // 這個組件不渲染任何UI
+}
 
 const App = () => {
   return (
