@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>音樂理論學院 - 重定向中...</title>
+    <script>
+      // 解決 GitHub Pages 的 SPA 重定向問題
+      (function() {
+        // 獲取當前 URL 路徑
+        const segments = window.location.pathname.split('/');
+        const repo = segments[1];
+        const path = segments.slice(2).join('/');
+        
+        // 構建重定向 URL（將路徑部分轉為查詢參數）
+        const redirectUrl = window.location.origin + '/' + repo + '/?path=' + path;
+        
+        // 重定向到首頁，同時帶上原始路徑信息
+        window.location.replace(redirectUrl);
+      })();
+    </script>
+  </head>
+  <body>
+    <div style="text-align: center; padding: 50px;">
+      <h1>重定向中...</h1>
+      <p>正在將您重定向到首頁，請稍候。</p>
+    </div>
+  </body>
+</html> 
