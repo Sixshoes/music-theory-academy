@@ -1,0 +1,13 @@
+<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="music-pattern" patternUnits="userSpaceOnUse" width="60" height="60">
+      <path d="M15 40c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5v15" stroke="rgba(0, 242, 254, 0.3)" fill="none" stroke-width="1"/>
+      <path d="M15 30v-20h15" stroke="rgba(0, 242, 254, 0.3)" fill="none" stroke-width="1"/>
+      <path d="M30 10c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5v15" stroke="rgba(0, 242, 254, 0.3)" fill="none" stroke-width="1"/>
+      <path d="M30 0v-20h15" stroke="rgba(0, 242, 254, 0.3)" fill="none" stroke-width="1"/>
+      <path d="M45 40c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5v15" stroke="rgba(63, 81, 181, 0.3)" fill="none" stroke-width="1"/>
+      <path d="M45 30v-20h15" stroke="rgba(63, 81, 181, 0.3)" fill="none" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#music-pattern)" />
+</svg>
