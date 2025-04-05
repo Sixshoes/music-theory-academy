@@ -1,0 +1,480 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary-color: #3f51b5;
+  --secondary-color: #00f2fe;
+  --accent-color: #f050e6;
+  --dark-bg: #0f1224;
+  --card-bg: #1a1f35;
+  --darker-bg: #0c0f1d;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a8d9;
+  --text-muted: #6c7a9c;
+  --error-color: #ff5370;
+  --success-color: #0df5e3;
+  --warning-color: #ffcb6b;
+  --neon-glow: 0 0 10px rgba(0, 242, 254, 0.5), 0 0 20px rgba(0, 242, 254, 0.3);
+  --primary-glow: 0 0 10px rgba(63, 81, 181, 0.5), 0 0 20px rgba(63, 81, 181, 0.3);
+  --accent-glow: 0 0 10px rgba(240, 80, 230, 0.5), 0 0 20px rgba(240, 80, 230, 0.3);
+  --card-gradient: linear-gradient(145deg, rgba(26, 31, 53, 0.7), rgba(26, 31, 53, 0.9));
+  --background-gradient: linear-gradient(135deg, #0f1224 0%, #1a2151 100%);
+  --music-gradient: linear-gradient(45deg, #3f51b5, #536dfe, #3f51b5);
+  --hover-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(63, 81, 181, 0.3);
+  --cyberpunk-line: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
+  --cyberpunk-line-vertical: linear-gradient(180deg, transparent, var(--secondary-color), transparent);
+  --font-primary: 'Rajdhani', 'Noto Sans TC', 'Microsoft JhengHei', '微軟正黑體', sans-serif;
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7p4HMA.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7pb0EPE.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7pbYF_E.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7pa8FvE.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Rajdhani Regular'), local('Rajdhani-Regular'),
+       url('/fonts/rajdhani-regular.woff2') format('woff2'),
+       url('/fonts/rajdhani-regular.woff') format('woff');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Rajdhani Medium'), local('Rajdhani-Medium'),
+       url('/fonts/rajdhani-medium.woff2') format('woff2'),
+       url('/fonts/rajdhani-medium.woff') format('woff');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Rajdhani SemiBold'), local('Rajdhani-SemiBold'),
+       url('/fonts/rajdhani-semibold.woff2') format('woff2'),
+       url('/fonts/rajdhani-semibold.woff') format('woff');
+  font-display: swap;
+}
+
+body, html {
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--background-gradient);
+  color: var(--text-primary);
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%233f51b5' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-size: 80px 80px;
+  z-index: -1;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.main-container {
+  min-height: calc(100vh - 128px); /* 減去頁頭頁尾高度 */
+  padding: 24px 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* 掃描線效果 */
+.scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 242, 254, 0.1);
+  opacity: 0.5;
+  z-index: 9;
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+/* 霓虹文本效果 */
+.neon-text {
+  text-shadow: var(--neon-glow);
+  animation: textFlicker 3s infinite alternate;
+}
+
+.neon-text-primary {
+  text-shadow: var(--primary-glow);
+  animation: textFlicker 3s infinite alternate;
+}
+
+.neon-text-accent {
+  text-shadow: var(--accent-glow);
+  animation: textFlicker 3s infinite alternate;
+}
+
+@keyframes textFlicker {
+  0%, 100% {
+    text-shadow: var(--neon-glow);
+  }
+  8%, 10% {
+    text-shadow: none;
+  }
+  20%, 30% {
+    text-shadow: var(--neon-glow);
+  }
+  42%, 44% {
+    text-shadow: 0 0 15px rgba(0, 242, 254, 0.8), 0 0 30px rgba(0, 242, 254, 0.5);
+  }
+}
+
+/* 賽博朋克分隔線 */
+.cyberpunk-divider {
+  height: 2px;
+  background: var(--cyberpunk-line);
+  margin: 24px 0;
+  position: relative;
+  border: none;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+}
+
+.cyberpunk-divider::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 16px;
+  height: 10px;
+  background: var(--secondary-color);
+  transform: translateX(-50%);
+  clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+
+/* 賽博朋克邊框 */
+.cyberpunk-border {
+  position: relative;
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cyberpunk-border::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--cyberpunk-line);
+  z-index: 1;
+}
+
+.cyberpunk-border::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--cyberpunk-line);
+  z-index: 1;
+}
+
+/* 卡片霓虹光效 */
+.card-glow {
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+  transition: all 0.5s ease;
+}
+
+.card-glow:hover {
+  box-shadow: 0 0 30px rgba(0, 242, 254, 0.5), 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* 動畫效果 */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.scale-in {
+  animation: scaleIn 0.4s ease-out;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* 邊框發光效果 */
+.border-glow {
+  animation: borderGlow 4s infinite;
+}
+
+@keyframes borderGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(63, 81, 181, 0.3), 0 0 20px rgba(0, 242, 254, 0.1);
+    border-color: rgba(63, 81, 181, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(63, 81, 181, 0.5), 0 0 40px rgba(0, 242, 254, 0.3);
+    border-color: rgba(63, 81, 181, 0.6);
+  }
+}
+
+/* 音符動畫 */
+.floating-notes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.music-note {
+  position: absolute;
+  opacity: 0.6;
+  animation: floatNote 15s linear infinite;
+  color: var(--primary-color);
+  filter: drop-shadow(0 0 5px rgba(63, 81, 181, 0.5));
+}
+
+@keyframes floatNote {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+
+/* 卡片懸停效果 */
+.hover-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(63, 81, 181, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.hover-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--cyberpunk-line);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--hover-shadow);
+  border-color: rgba(63, 81, 181, 0.4);
+}
+
+.hover-card:hover::before {
+  opacity: 1;
+}
+
+/* 按鈕效果 */
+.pulse-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.pulse-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.pulse-button:hover::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% { transform: scale(0, 0); opacity: 0.5; }
+  100% { transform: scale(20, 20); opacity: 0; }
+}
+
+/* 響應式調整 */
+@media (max-width: 600px) {
+  .main-container {
+    padding: 16px 0;
+  }
+  
+  .floating-notes {
+    display: none; /* 在移動設備上禁用浮動音符以提高性能 */
+  }
+}
+
+/* 數據線條效果 */
+.data-lines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.data-line {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.3), transparent);
+  animation: dataLineMove 8s linear infinite;
+  opacity: 0;
+}
+
+@keyframes dataLineMove {
+  0% { width: 0; opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { width: 100%; opacity: 0; }
+}
+
+/* 全息投影效果 */
+.hologram {
+  position: relative;
+  overflow: hidden;
+}
+
+.hologram::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(0, 242, 254, 0.05), transparent);
+  animation: hologramScan 3s ease infinite;
+  pointer-events: none;
+}
+
+@keyframes hologramScan {
+  0% { transform: translateX(-100%) translateY(-100%); }
+  50% { transform: translateX(100%) translateY(100%); }
+  100% { transform: translateX(-100%) translateY(-100%); }
+}
+
+/* 鍵盤效果 */
+.keyboard-key {
+  border: 1px solid rgba(63, 81, 181, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.keyboard-key::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent, rgba(63, 81, 181, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.keyboard-key:hover::before {
+  transform: translateX(100%);
+}
+
+.keyboard-key:hover {
+  box-shadow: 0 0 15px rgba(63, 81, 181, 0.5);
+  transform: translateY(-2px);
+}
