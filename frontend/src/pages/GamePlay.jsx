@@ -603,28 +603,30 @@ const GamePlay = () => {
   
   const [visualizerBars, setVisualizerBars] = useState(generateRandomBars());
   
-  // 在 GamePlay 組件內添加一個函數來安全地初始化音頻
+  // 初始化音頻上下文
   const initializeAudio = () => {
-    // 只有在用戶交互後才啟動音頻上下文
-    if (!audioContextStarted) {
-      // 延遲初始化 Tone.js
+    try {
+      // 使用 Tone.js 的音頻上下文而不是創建新的
       if (Tone.context.state !== 'running') {
-        Tone.context.resume().then(() => {
-          setAudioContextStarted(true);
-          setShowAudioPrompt(false); // 音頻啟動後隱藏提示
+        Tone.start().then(() => {
           console.log('音頻上下文已啟動');
+          setShowAudioPrompt(false);
+        }).catch(e => {
+          console.error('啟動音頻上下文失敗:', e);
+          // 保持提示可見，因為我們需要用戶再次嘗試
         });
       } else {
-        setAudioContextStarted(true);
-        setShowAudioPrompt(false); // 音頻啟動後隱藏提示
+        console.log('音頻上下文已經在運行中');
+        setShowAudioPrompt(false);
       }
+    } catch (error) {
+      console.error('初始化音頻時出錯:', error);
     }
   };
   
-  // 處理音頻提示的點擊
+  // 處理音頻提示點擊
   const handleAudioPromptClick = () => {
     initializeAudio();
-    setShowAudioPrompt(false);
   };
   
   // 處理頁面卸載時的清理

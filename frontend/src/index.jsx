@@ -17,7 +17,7 @@ console.error = (...args) => {
 // 使用 React 18 的 createRoot API
 const root = createRoot(document.getElementById('root'));
 root.render(
-  <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+  <BrowserRouter basename="/music-theory-academy" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <App />
   </BrowserRouter>
 );
