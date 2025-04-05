@@ -21,6 +21,7 @@ export default defineConfig({
     sourcemap: true,
     assetsDir: 'assets',
     rollupOptions: {
+      external: ['@material-ui/core', '@material-ui/icons', '@material-ui/core/styles'],
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',

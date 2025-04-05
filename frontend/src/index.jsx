@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, createRoutesFromElements, createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { HashRouter, createRoutesFromElements, createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './App.css';
 import App from './App.jsx';
 
@@ -17,7 +17,7 @@ console.error = (...args) => {
 // 使用 React 18 的 createRoot API
 const root = createRoot(document.getElementById('root'));
 root.render(
-  <BrowserRouter basename="/music-theory-academy" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+  <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <App />
-  </BrowserRouter>
+  </HashRouter>
 );
