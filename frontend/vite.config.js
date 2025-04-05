@@ -21,11 +21,18 @@ export default defineConfig({
     sourcemap: true,
     assetsDir: 'assets',
     rollupOptions: {
-      external: ['@material-ui/core', '@material-ui/icons', '@material-ui/core/styles'],
+      external: ['@material-ui/core', '@material-ui/icons', '@material-ui/core/styles', 'react', 'react-dom'],
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        globals: {
+          'react': 'React',
+          'react-dom': 'ReactDOM',
+          '@material-ui/core': 'MaterialUI',
+          '@material-ui/icons': 'MaterialUIIcons',
+          '@material-ui/core/styles': 'MaterialUI'
+        }
       }
     }
   },
