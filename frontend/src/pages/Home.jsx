@@ -680,7 +680,7 @@ const features = [
 ];
 
 // 添加通用的占位圖片
-const defaultCourseImage = '/images/default-course.jpg';
+const defaultCourseImage = '/music-theory-academy/images/default-course.jpg';
 
 // 處理圖片加載錯誤的函數
 const handleImageError = (e) => {
@@ -940,7 +940,7 @@ const Home = () => {
             <Grid item xs={12} md={6}>
               <Paper elevation={3} className={classes.introImageBox}>
                 <img 
-                  src="/images/music-theory-concept.jpg" 
+                  src="/music-theory-academy/images/music-theory-concept.jpg" 
                   alt="音樂理論概念" 
                   className={classes.introImage} 
                 />
