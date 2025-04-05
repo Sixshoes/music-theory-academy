@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
 import { theme } from '../App';
@@ -27,6 +27,7 @@ import {
   Popover,
   Avatar,
   Divider,
+  Grow,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -41,6 +42,9 @@ import {
   MusicNote,
   LibraryMusic,
   Refresh,
+  Stop,
+  HelpOutline,
+  Check,
 } from '@material-ui/icons';
 import * as Tone from 'tone';
 import GameSelector from '../components/games/GameSelector';
@@ -575,6 +579,108 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     overflow: 'hidden',
   },
+  scaleOption: {
+    padding: theme.spacing(3),
+    borderRadius: '12px',
+    background: 'rgba(63, 81, 181, 0.1)',
+    border: '1px solid rgba(63, 81, 181, 0.3)',
+    transition: 'all 0.3s ease',
+    cursor: 'pointer',
+    position: 'relative',
+    overflow: 'hidden',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 0 20px rgba(63, 81, 181, 0.2)',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: '0 0 30px rgba(63, 81, 181, 0.4)',
+      background: 'rgba(63, 81, 181, 0.2)',
+    }
+  },
+  // 音階視覺化樣式
+  scaleVisualizerContainer: {
+    padding: theme.spacing(2),
+    borderRadius: '12px',
+    background: 'rgba(17, 19, 35, 0.7)',
+    boxShadow: 'inset 0 2px 10px rgba(0, 0, 0, 0.3)',
+    border: '1px solid rgba(63, 81, 181, 0.2)',
+    marginBottom: theme.spacing(3),
+    position: 'relative',
+    overflow: 'hidden',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '1px',
+      background: 'linear-gradient(90deg, transparent, rgba(63, 81, 181, 0.5), transparent)',
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      bottom: 0,
+      left: '20%',
+      width: '60%',
+      height: '1px',
+      background: 'linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.3), transparent)',
+    },
+  },
+  pianoContainer: {
+    height: '120px',
+    position: 'relative',
+    display: 'flex',
+    justifyContent: 'center',
+    margin: '0 auto',
+    width: '90%',
+    maxWidth: '500px',
+  },
+  whiteKeyVisualize: {
+    height: '100%',
+    flex: '1',
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: '0 0 4px 4px',
+    margin: '0 1px',
+    position: 'relative',
+    transition: 'all 0.3s ease',
+    border: '1px solid rgba(63, 81, 181, 0.3)',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 1)',
+    },
+  },
+  blackKeysContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '65%',
+    pointerEvents: 'none',
+  },
+  blackKeyVisualize: {
+    position: 'absolute',
+    width: '8%',
+    height: '100%',
+    background: '#151933',
+    borderRadius: '0 0 3px 3px',
+    zIndex: 2,
+    transition: 'all 0.3s ease',
+    border: '1px solid rgba(63, 81, 181, 0.5)',
+    borderTop: 'none',
+  },
+  scaleTip: {
+    padding: theme.spacing(2),
+    marginTop: theme.spacing(2),
+    borderRadius: '8px',
+    background: 'rgba(63, 81, 181, 0.1)',
+    border: '1px dashed rgba(63, 81, 181, 0.3)',
+    '& li': {
+      margin: theme.spacing(0.5, 0),
+      color: '#a0a8d9',
+    },
+  },
 }));
 
 const GamePlay = () => {
@@ -595,6 +701,12 @@ const GamePlay = () => {
   const [showAudioPrompt, setShowAudioPrompt] = useState(true); // 顯示音頻啟動提示
   const [isOfflineMode, setIsOfflineMode] = useState(false); // 離線模式標誌
   const effectiveGameId = gameId || '1'; // 如果 gameId 未定義，使用默認值 '1'
+  const [activeNotes, setActiveNotes] = useState([]); // 當前活動的音符
+  
+  // 鋼琴鍵 refs
+  const whiteKeysRef = useRef([]);
+  const blackKeysRef = useRef([]);
+  const animationRef = useRef(null);
   
   // 生成視覺化效果的隨機條形
   const generateRandomBars = () => {
@@ -786,32 +898,129 @@ const GamePlay = () => {
     }
     
     setIsPlaying(true);
+    // 清除之前的活動音符
+    clearActiveNotes();
     
     try {
       // 創建合成器並連接到主輸出
       const synth = new Tone.PolySynth(Tone.Synth).toDestination();
       
-      // 根據當前問題生成不同的音頻
-      const now = Tone.now();
+      // 設置音色
+      synth.set({
+        oscillator: {
+          type: 'triangle'  // 使用三角波音色，聽起來更柔和
+        },
+        envelope: {
+          attack: 0.02,
+          decay: 0.1,
+          sustain: 0.3,
+          release: 1
+        }
+      });
       
-      // 根據當前問題編號生成不同類型的音樂問題
-      switch(currentQuestion % 5) {
-        case 1: // 大三和弦
-          synth.triggerAttackRelease(["C4", "E4", "G4"], "2n", now);
-          break;
-        case 2: // 小三和弦
-          synth.triggerAttackRelease(["C4", "Eb4", "G4"], "2n", now);
-          break;
-        case 3: // 增三和弦
-          synth.triggerAttackRelease(["C4", "E4", "G#4"], "2n", now);
-          break;
-        case 4: // 減三和弦
-          synth.triggerAttackRelease(["C4", "Eb4", "Gb4"], "2n", now);
-          break;
-        case 0: // 屬七和弦
-          synth.triggerAttackRelease(["C4", "E4", "G4", "Bb4"], "2n", now);
-          break;
+      // 定義大調和小調音階的間隔
+      const majorScale = [0, 2, 4, 5, 7, 9, 11, 12]; // 全全半全全全半
+      const minorScale = [0, 2, 3, 5, 7, 8, 10, 12]; // 全半全全半全全
+      
+      // 根據當前問題編號決定播放大調還是小調音階
+      const isCurrentQuestionEven = currentQuestion % 2 === 0;
+      const scaleToPlay = isCurrentQuestionEven ? minorScale : majorScale;
+      
+      // 隨機選擇根音 (C4 = 60, D4 = 62, E4 = 64, F4 = 65, G4 = 67, A4 = 69, B4 = 71)
+      const rootNotes = [60, 62, 64, 65, 67, 69, 71]; // MIDI音符編號
+      const rootNoteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+      const rootIndex = Math.floor(Math.random() * rootNotes.length);
+      const rootNote = rootNotes[rootIndex];
+      const rootNoteName = rootNoteNames[rootIndex];
+      
+      // 保存當前根音名稱和音階類型，用於顯示在界面上和反饋中
+      const currentScaleType = isCurrentQuestionEven ? '小調' : '大調';
+      
+      // 更新當前音階信息
+      setCurrentScale({
+        rootNote: rootNoteName,
+        type: currentScaleType,
+        intervals: scaleToPlay,
+        isPlaying: true
+      });
+      
+      // 設置反饋信息
+      let correctFeedback = '';
+      if (isCurrentQuestionEven) { // 小調
+        correctFeedback = `恭喜！這是 ${rootNoteName} 小調音階。小調的特點是第三音（${rootNoteName} 到 ${getNoteName(rootNote + 3)}）為小三度，帶有些許憂傷的色彩。`;
+      } else { // 大調
+        correctFeedback = `恭喜！這是 ${rootNoteName} 大調音階。大調的特點是第三音（${rootNoteName} 到 ${getNoteName(rootNote + 4)}）為大三度，音色明亮開朗。`;
       }
+      
+      // 更新當前問題的正確反饋信息
+      setCurrentFeedback({
+        correct: correctFeedback,
+        incorrect: `這不是正確的答案。實際上這是 ${rootNoteName} ${currentScaleType}音階。${
+          isCurrentQuestionEven 
+            ? `小調的第三、六、七音相比大調要降低半音，給人憂傷的感覺。` 
+            : `大調音階的音程排列是全全半全全全半，給人明亮的感覺。`
+        }請再仔細聆聽音色的特點。`
+      });
+      
+      // 生成所有音階音符
+      const scaleNotes = scaleToPlay.map(interval => rootNote + interval);
+      
+      // 播放選定的音階 (上行)
+      const noteLength = 0.3; // 每個音符的長度（秒）
+      const noteInterval = 0.4; // 每個音符之間的時間間隔（秒）
+      let currentNotesPlaying = [];
+      
+      // 播放上行音階並視覺化
+      scaleToPlay.forEach((interval, index) => {
+        const noteTime = Tone.now() + index * noteInterval;
+        const midiNote = rootNote + interval;
+        const frequency = Tone.Frequency(midiNote, "midi");
+        
+        setTimeout(() => {
+          synth.triggerAttackRelease(frequency, noteLength, Tone.now());
+          
+          // 更新當前正在播放的音符
+          currentNotesPlaying = [...currentNotesPlaying, midiNote];
+          updateActiveNotes(currentNotesPlaying);
+          
+          // 0.25秒後從活動音符中移除這個音符
+          setTimeout(() => {
+            currentNotesPlaying = currentNotesPlaying.filter(note => note !== midiNote);
+            updateActiveNotes(currentNotesPlaying);
+          }, noteLength * 1000);
+        }, index * noteInterval * 1000);
+      });
+      
+      // 計算上行音階的總時間
+      const ascendingTime = scaleToPlay.length * noteInterval;
+      
+      // 暫停後播放下行音階
+      const pauseBeforeDescending = 0.8; // 暫停時間（秒）
+      
+      // 播放下行音階並視覺化
+      const reverseScale = [...scaleToPlay].reverse();
+      reverseScale.forEach((interval, index) => {
+        const noteTime = Tone.now() + ascendingTime + pauseBeforeDescending + index * noteInterval;
+        const midiNote = rootNote + interval;
+        const frequency = Tone.Frequency(midiNote, "midi");
+        
+        setTimeout(() => {
+          synth.triggerAttackRelease(frequency, noteLength, Tone.now());
+          
+          // 更新當前正在播放的音符
+          currentNotesPlaying = [...currentNotesPlaying, midiNote];
+          updateActiveNotes(currentNotesPlaying);
+          
+          // 0.25秒後從活動音符中移除這個音符
+          setTimeout(() => {
+            currentNotesPlaying = currentNotesPlaying.filter(note => note !== midiNote);
+            updateActiveNotes(currentNotesPlaying);
+          }, noteLength * 1000);
+        }, (ascendingTime + pauseBeforeDescending + index * noteInterval) * 1000);
+      });
+      
+      // 計算總播放時間
+      const totalPlayTime = ascendingTime + pauseBeforeDescending + reverseScale.length * noteInterval + 0.5; // 額外添加0.5秒緩衝
       
       // 模擬音頻播放和視覺化效果
       const updateVisualizer = () => {
@@ -821,27 +1030,49 @@ const GamePlay = () => {
       // 每200毫秒更新一次視覺化效果
       const visualizerInterval = setInterval(updateVisualizer, 200);
       
-      // 3秒後音頻播放結束
+      // 播放結束後處理
       setTimeout(() => {
         setIsPlaying(false);
         clearInterval(visualizerInterval);
         setVisualizerBars(visualizerBars.map(() => 0));
-      }, 3000);
+        clearActiveNotes(); // 清除所有活動音符
+        
+        // 更新顯示當前音階的信息，但保留音階信息以便顯示
+        setCurrentScale(prevScale => ({
+          ...prevScale,
+          isPlaying: false
+        }));
+      }, totalPlayTime * 1000);
     } catch (error) {
       console.error('播放音頻時出錯:', error);
       setIsPlaying(false);
+      clearActiveNotes();
       alert('播放音頻時出錯。請稍後再試。');
     }
   };
-
+  
+  // 獲取MIDI音符對應的音名
+  const getNoteName = (midiNote) => {
+    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const octave = Math.floor(midiNote / 12) - 1;
+    const noteName = noteNames[midiNote % 12];
+    return `${noteName}${octave}`;
+  };
+  
   // 改進提交答案的方法
-  const submitAnswer = (correct) => {
-    setIsCorrect(correct);
+  const submitAnswer = (isMajorScale) => {
+    // 根據當前問題編號確定正確答案是大調還是小調
+    const isCurrentQuestionEven = currentQuestion % 2 === 0;
+    const correctAnswer = !isCurrentQuestionEven; // 奇數題是大調，偶數題是小調
+    
+    const isAnswerCorrect = (isMajorScale === correctAnswer);
+    
+    setIsCorrect(isAnswerCorrect);
     setShowFeedback(true);
     
     // 更新分數
     let newScore = score;
-    if (correct) {
+    if (isAnswerCorrect) {
       newScore = score + 10; // 假設每題10分
       setScore(newScore);
       // 保存更新後的分數到後端
@@ -858,7 +1089,180 @@ const GamePlay = () => {
       setShowFeedback(false);
     }, 3000);
   };
-
+  
+  // 在 GamePlay 組件內添加新的狀態
+  const [currentScale, setCurrentScale] = useState({
+    rootNote: 'C',
+    type: '大調',
+    intervals: [0, 2, 4, 5, 7, 9, 11, 12],
+    isPlaying: false
+  });
+  
+  const [currentFeedback, setCurrentFeedback] = useState({
+    correct: '恭喜！您識別正確',
+    incorrect: '抱歉，識別錯誤。請仔細聆聽再試一次。'
+  });
+  
+  // 渲染音階視覺效果
+  const renderScaleVisualizer = () => {
+    // 不顯示音階視覺化的條件
+    if (!isPlaying && !showFeedback) return null;
+    
+    // 定義白鍵的音名
+    const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    
+    // 定義黑鍵的位置百分比
+    const blackKeyPositions = [
+      { key: 'C#', left: '6%' },
+      { key: 'D#', left: '20%' },
+      { key: 'F#', left: '49%' },
+      { key: 'G#', left: '63%' },
+      { key: 'A#', left: '77%' }
+    ];
+    
+    return (
+      <Grow in={isPlaying || showFeedback} timeout={500}>
+        <Box className={classes.scaleVisualizerContainer}>
+          <Typography variant="subtitle2" style={{ 
+            color: '#00f2fe', 
+            marginBottom: theme.spacing(1),
+            textAlign: 'center' 
+          }}>
+            <MusicNote style={{ fontSize: 16, marginRight: theme.spacing(0.5), verticalAlign: 'middle' }} />
+            {isPlaying ? '正在播放的音階：' : '上一個播放的音階：'}
+            {currentScale.rootNote && (
+              <span style={{ 
+                color: '#ffffff', 
+                fontWeight: 'bold',
+                marginLeft: theme.spacing(1),
+                textShadow: '0 0 10px rgba(0, 242, 254, 0.5)'
+              }}>
+                {currentScale.rootNote} {currentScale.type}
+              </span>
+            )}
+          </Typography>
+          
+          {/* 鋼琴視覺化組件 */}
+          <Box className={classes.pianoContainer}>
+            {/* 白鍵 */}
+            {whiteKeys.map((key, index) => (
+              <div 
+                key={key}
+                className={classes.whiteKeyVisualize}
+                ref={el => whiteKeysRef.current[index] = el}
+                style={{
+                  backgroundColor: activeNotes.includes(key) 
+                    ? 'rgba(0, 242, 254, 0.2)' 
+                    : 'rgba(255, 255, 255, 0.9)',
+                  boxShadow: activeNotes.includes(key) 
+                    ? '0 0 10px rgba(0, 242, 254, 0.5), inset 0 0 5px rgba(0, 242, 254, 0.3)' 
+                    : 'none',
+                  transform: activeNotes.includes(key) ? 'translateY(2px)' : 'none'
+                }}
+              >
+                <div style={{ 
+                  position: 'absolute', 
+                  bottom: '5px', 
+                  left: '50%', 
+                  transform: 'translateX(-50%)',
+                  fontSize: '0.75rem',
+                  color: '#151933',
+                  fontWeight: 'bold',
+                  opacity: 0.7
+                }}>
+                  {key}
+                </div>
+              </div>
+            ))}
+            
+            {/* 黑鍵容器 */}
+            <div className={classes.blackKeysContainer}>
+              {blackKeyPositions.map((item, index) => (
+                <div
+                  key={item.key}
+                  ref={el => blackKeysRef.current[index] = el}
+                  className={classes.blackKeyVisualize}
+                  style={{
+                    left: item.left,
+                    backgroundColor: activeNotes.includes(item.key) 
+                      ? 'rgba(63, 81, 181, 0.8)' 
+                      : '#151933',
+                    boxShadow: activeNotes.includes(item.key) 
+                      ? '0 0 10px rgba(63, 81, 181, 0.5), inset 0 0 5px rgba(63, 81, 181, 0.3)' 
+                      : 'none',
+                    transform: activeNotes.includes(item.key) ? 'translateY(2px)' : 'none'
+                  }}
+                >
+                  <div style={{ 
+                    position: 'absolute', 
+                    bottom: '5px', 
+                    left: '50%', 
+                    transform: 'translateX(-50%)',
+                    fontSize: '0.7rem',
+                    color: '#ffffff',
+                    fontWeight: 'bold',
+                    opacity: 0.7
+                  }}>
+                    {item.key}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Box>
+          
+          {/* 音階描述 */}
+          {currentScale.rootNote && (
+            <Typography variant="body2" style={{ 
+              color: '#a0a8d9', 
+              marginTop: theme.spacing(1.5),
+              textAlign: 'center',
+              fontStyle: 'italic'
+            }}>
+              {currentScale.type === '大調' 
+                ? `${currentScale.rootNote} 大調音階包含的音程模式：全全半全全全半（W-W-H-W-W-W-H）`
+                : `${currentScale.rootNote} 小調音階包含的音程模式：全半全全半全全（W-H-W-W-H-W-W）`}
+            </Typography>
+          )}
+          
+          {/* 加入模擬的掃描線效果 */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '2px',
+            background: 'linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.5), transparent)',
+            animation: 'scanline 2s linear infinite'
+          }} />
+        </Box>
+      </Grow>
+    );
+  };
+  
+  // 更新音符狀態的函數
+  const updateActiveNotes = (noteArray) => {
+    // 將 MIDI 音符轉換為鍵名
+    const keyNames = noteArray.map(noteNum => {
+      const noteName = getNoteName(noteNum);
+      return noteName;
+    });
+    setActiveNotes(keyNames);
+  };
+  
+  // 清除音符狀態的函數
+  const clearActiveNotes = () => {
+    setActiveNotes([]);
+  };
+  
+  // 在組件卸載時清除任何動畫
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+  
   const renderGameHeader = () => (
     <Box mb={4} className={classes.neoCyberpunkEffect}>
       <div className={classes.scanline}></div>
@@ -1072,60 +1476,137 @@ const GamePlay = () => {
                 <div className={classes.scanline}></div>
                 {renderGameControls()}
                 
-                {/* 鋼琴鍵盤 */}
-                <Box className={classes.keyboardContainer}>
-                  {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map((note, index) => {
-                    const isBlack = note.includes('#');
-                    return (
-                      <Box
-                        key={note}
-                        className={`${classes.pianoKey} ${isBlack ? classes.blackKey : classes.whiteKey}`}
-                        onClick={() => submitAnswer(Math.random() > 0.5)}
-                        sx={{
-                          '&:hover': {
-                            boxShadow: isBlack
-                              ? '0 0 15px rgba(63, 81, 181, 0.8), 0 0 5px rgba(0, 242, 254, 0.5)'
-                              : '0 0 20px rgba(63, 81, 181, 0.8), 0 0 10px rgba(0, 242, 254, 0.6)',
-                            transform: 'translateY(-3px)',
-                            transition: 'all 0.2s ease',
-                          },
-                          '&:active': {
-                            boxShadow: isBlack
-                              ? '0 0 25px rgba(63, 81, 181, 1), 0 0 10px rgba(0, 242, 254, 0.8)'
-                              : '0 0 30px rgba(63, 81, 181, 1), 0 0 15px rgba(0, 242, 254, 0.9)',
-                            transform: 'translateY(0)',
-                          },
+                {/* 音階視覺化 */}
+                {renderScaleVisualizer()}
+                
+                {/* 調式選擇區域 */}
+                <Box className={classes.keyboardContainer} style={{ flexDirection: 'column', padding: theme.spacing(4) }}>
+                  <Typography variant="h6" style={{ color: '#a0a8d9', marginBottom: theme.spacing(3), textAlign: 'center' }}>
+                    聆聽音頻後，選擇您認為正確的調式：
+                  </Typography>
+                  
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <Box 
+                        className={classes.scaleOption}
+                        onClick={() => submitAnswer(true)} // 選擇大調
+                        style={{
+                          padding: theme.spacing(3),
+                          borderRadius: '12px',
+                          background: 'rgba(63, 81, 181, 0.1)',
+                          border: '1px solid rgba(63, 81, 181, 0.3)',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer',
                           position: 'relative',
-                          '&::after': isBlack ? {
-                            content: '""',
-                            position: 'absolute',
-                            bottom: 0,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            width: '8px',
-                            height: '2px',
-                            background: 'rgba(0, 242, 254, 0.6)',
-                            borderRadius: '1px',
-                            opacity: 0,
-                            transition: 'opacity 0.3s ease',
-                          } : {},
-                          '&:hover::after': isBlack ? {
-                            opacity: 1,
-                          } : {},
+                          overflow: 'hidden',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 0 20px rgba(63, 81, 181, 0.2)',
+                          '&:hover': {
+                            transform: 'translateY(-5px)',
+                            boxShadow: '0 0 30px rgba(63, 81, 181, 0.4)',
+                            background: 'rgba(63, 81, 181, 0.2)',
+                          }
                         }}
                       >
-                        {!isBlack && (
-                          <Box className={classes.keyLabel} sx={{
-                            color: '#3f51b5',
-                            fontWeight: 'bold',
-                            textShadow: '0 0 5px rgba(63, 81, 181, 0.3)',
-                          }}>
-                            {note}
-                          </Box>
-                        )}
+                        <Typography variant="h5" style={{ 
+                          color: '#ffffff', 
+                          fontWeight: 700,
+                          marginBottom: theme.spacing(1),
+                          textShadow: '0 0 10px rgba(63, 81, 181, 0.5)'
+                        }}>
+                          大調 (Major)
+                        </Typography>
+                        <Divider style={{ 
+                          width: '80%', 
+                          margin: `${theme.spacing(1)}px auto`, 
+                          background: 'linear-gradient(90deg, transparent, rgba(63, 81, 181, 0.5), transparent)'
+                        }} />
+                        <Typography variant="body1" style={{ color: '#a0a8d9', textAlign: 'center' }}>
+                          明亮、開朗、積極的音色
+                        </Typography>
+                        <Typography variant="body2" style={{ 
+                          color: '#8a92c3', 
+                          marginTop: theme.spacing(2),
+                          fontSize: '0.9rem', 
+                          textAlign: 'center',
+                          fontStyle: 'italic'
+                        }}>
+                          創作應用：適合表達喜悅、勝利、光明等情感，廣泛用於流行音樂、歡快的舞曲和慶典音樂。
+                        </Typography>
                       </Box>
-                    );
-                  })}
+                    </Grid>
+                    
+                    <Grid item xs={12} md={6}>
+                      <Box 
+                        className={classes.scaleOption}
+                        onClick={() => submitAnswer(false)} // 選擇小調
+                        style={{
+                          padding: theme.spacing(3),
+                          borderRadius: '12px',
+                          background: 'rgba(63, 81, 181, 0.1)',
+                          border: '1px solid rgba(63, 81, 181, 0.3)',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 0 20px rgba(63, 81, 181, 0.2)',
+                          '&:hover': {
+                            transform: 'translateY(-5px)',
+                            boxShadow: '0 0 30px rgba(63, 81, 181, 0.4)',
+                            background: 'rgba(63, 81, 181, 0.2)',
+                          }
+                        }}
+                      >
+                        <Typography variant="h5" style={{ 
+                          color: '#ffffff', 
+                          fontWeight: 700,
+                          marginBottom: theme.spacing(1),
+                          textShadow: '0 0 10px rgba(63, 81, 181, 0.5)'
+                        }}>
+                          小調 (Minor)
+                        </Typography>
+                        <Divider style={{ 
+                          width: '80%', 
+                          margin: `${theme.spacing(1)}px auto`, 
+                          background: 'linear-gradient(90deg, transparent, rgba(63, 81, 181, 0.5), transparent)'
+                        }} />
+                        <Typography variant="body1" style={{ color: '#a0a8d9', textAlign: 'center' }}>
+                          柔和、憂傷、深沉的音色
+                        </Typography>
+                        <Typography variant="body2" style={{ 
+                          color: '#8a92c3', 
+                          marginTop: theme.spacing(2),
+                          fontSize: '0.9rem', 
+                          textAlign: 'center',
+                          fontStyle: 'italic'
+                        }}>
+                          創作應用：適合表達悲傷、內省、神秘等情感，常用於抒情歌曲、電影配樂和表達深度的藝術作品。
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                  
+                  {/* 學習小貼士 */}
+                  <Box className={classes.scaleTip} mt={3}>
+                    <Typography variant="subtitle2" style={{ color: '#00f2fe', marginBottom: theme.spacing(1) }}>
+                      <MusicNote style={{ fontSize: 16, marginRight: theme.spacing(0.5) }} />
+                      學習小貼士
+                    </Typography>
+                    <Box component="ul" style={{ paddingLeft: theme.spacing(3), margin: theme.spacing(1, 0) }}>
+                      <li>大調音階的第三音是大三度，小調音階的第三音是小三度</li>
+                      <li>小調的第三、六、七音相比大調降低半音</li>
+                      <li>注意聆聽音階帶給你的情感感受，這是辨別大小調的重要方法</li>
+                    </Box>
+                  </Box>
                 </Box>
                 
                 {/* 反饋信息 */}
@@ -1201,12 +1682,12 @@ const GamePlay = () => {
                         color: '#a0a8d9', 
                         marginTop: 8,
                         textAlign: 'center',
-                        maxWidth: '80%',
+                        maxWidth: '90%',
                         margin: '8px auto 0',
                       }}>
                         {isCorrect 
-                          ? '您的音樂理論知識非常扎實！' 
-                          : '別擔心，音樂理論需要時間來掌握。再聽一次音頻，仔細分辨和弦的特性。'}
+                          ? currentFeedback.correct 
+                          : currentFeedback.incorrect}
                       </Typography>
                     </Box>
                   </Fade>
@@ -1294,8 +1775,9 @@ const GamePlay = () => {
             如何遊玩
           </Typography>
           <Box component="ol" style={{ color: '#a0a8d9', paddingLeft: '24px' }}>
-            <li style={{ margin: '8px 0' }}>點擊播放按鈕聆聽音樂</li>
-            <li style={{ margin: '8px 0' }}>根據您聽到的聲音，選擇正確的和弦類型</li>
+            <li style={{ margin: '8px 0' }}>點擊播放按鈕聆聽音階</li>
+            <li style={{ margin: '8px 0' }}>仔細聽完上行和下行的音階後，判斷是大調還是小調</li>
+            <li style={{ margin: '8px 0' }}>選擇您認為正確的選項（大調或小調）</li>
             <li style={{ margin: '8px 0' }}>每次正確回答可獲得10分</li>
             <li style={{ margin: '8px 0' }}>您可以任意次數重複播放音頻</li>
           </Box>
@@ -1304,28 +1786,43 @@ const GamePlay = () => {
           
           <Typography variant="h6" gutterBottom style={{ color: '#00f2fe' }}>
             <MusicNote style={{ marginRight: 8 }} />
-            遊戲中的和弦類型
+            識別技巧
           </Typography>
           <Grid container spacing={2} style={{ marginTop: '8px' }}>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 大三和弦 (Major)</Typography>
+            <Grid item xs={12}>
+              <Typography variant="body2" style={{ color: '#a0a8d9', marginBottom: theme.spacing(1) }}>
+                <strong>大調音階：</strong> 由全音、全音、半音、全音、全音、全音、半音的音程組成（全全半全全全半），聽起來明亮、歡快。
+              </Typography>
+              <Typography variant="body2" style={{ color: '#a0a8d9', marginBottom: theme.spacing(1) }}>
+                <strong>小調音階：</strong> 由全音、半音、全音、全音、半音、全音、全音的音程組成（全半全全半全全），聽起來憂傷、柔和。
+              </Typography>
             </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 小三和弦 (Minor)</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 增三和弦 (Augmented)</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 減三和弦 (Diminished)</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 大七和弦 (Major 7th)</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 屬七和弦 (Dominant 7th)</Typography>
+            <Grid item xs={12}>
+              <Typography variant="body2" style={{ color: '#a0a8d9', marginBottom: theme.spacing(1) }}>
+                <strong>聽辨要點：</strong>
+              </Typography>
+              <Box component="ul" style={{ color: '#a0a8d9', paddingLeft: '24px' }}>
+                <li style={{ margin: '4px 0' }}>聆聽音階的第三音（第一個音為第一音）。大調的第三音高於小調的第三音一個半音。</li>
+                <li style={{ margin: '4px 0' }}>注意音階帶給您的情感反應 - 大調往往感覺明亮、積極，小調則感覺憂鬱、深沉。</li>
+                <li style={{ margin: '4px 0' }}>隨著練習增加，您的耳朵會越來越能辨別兩者的區別。</li>
+              </Box>
             </Grid>
           </Grid>
+          
+          <hr className={classes.cyberpunkDivider} />
+          
+          <Typography variant="h6" gutterBottom style={{ color: '#00f2fe' }}>
+            <MusicNote style={{ marginRight: 8 }} />
+            實際應用
+          </Typography>
+          <Typography variant="body2" style={{ color: '#a0a8d9', marginBottom: theme.spacing(1) }}>
+            能夠識別大調和小調不僅是音樂理論的基礎知識，也對音樂創作和欣賞有重要意義：
+          </Typography>
+          <Box component="ul" style={{ color: '#a0a8d9', paddingLeft: '24px' }}>
+            <li style={{ margin: '4px 0' }}>電影配樂中常根據情感需要選擇不同調式</li>
+            <li style={{ margin: '4px 0' }}>作曲時，調式選擇對表達音樂情感至關重要</li>
+            <li style={{ margin: '4px 0' }}>分析音樂作品時，理解調式可深入把握作品情感</li>
+          </Box>
         </DialogContent>
         <DialogActions className={classes.dialogActions}>
           <Button 
