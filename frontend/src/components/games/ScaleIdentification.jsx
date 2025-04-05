@@ -92,13 +92,43 @@ const scales = {
   },
   dorian: {
     name: '多利安調式',
-    description: '多利安調式是一種教會調式，有輕微憂鬱但不太暗沉的音色。',
+    description: '多利安調式是一種教會調式，有輕微憂鬱但不太暗沉的音色，常用於爵士和搖滾樂。',
     intervals: [0, 2, 3, 5, 7, 9, 10, 12], // 全半全全全半全
   },
   phrygian: {
     name: '弗里幾亞調式',
-    description: '弗里幾亞調式有強烈的西班牙或中東風格。',
+    description: '弗里幾亞調式有強烈的西班牙或中東風格，第二音降低使其具有獨特的音色。',
     intervals: [0, 1, 3, 5, 7, 8, 10, 12], // 半全全全半全全
+  },
+  lydian: {
+    name: '利底亞調式',
+    description: '利底亞調式的第四音升高，帶來明亮、夢幻的音色，常用於電影配樂。',
+    intervals: [0, 2, 4, 6, 7, 9, 11, 12], // 全全全半全全半
+  },
+  mixolydian: {
+    name: '混合利底亞調式',
+    description: '混合利底亞調式的第七音降低，有藍調風格，常用於爵士、藍調和搖滾樂。',
+    intervals: [0, 2, 4, 5, 7, 9, 10, 12], // 全全半全全半全
+  },
+  locrian: {
+    name: '洛克利安調式',
+    description: '洛克利安調式是最不穩定的教會調式，帶有強烈的不安感和緊張感。',
+    intervals: [0, 1, 3, 5, 6, 8, 10, 12], // 半全全半全全全
+  },
+  pentatonicMajor: {
+    name: '大調五聲音階',
+    description: '大調五聲音階由五個音組成，沒有半音，常用於民謠和東亞音樂。',
+    intervals: [0, 2, 4, 7, 9, 12], // 全全小三全全
+  },
+  pentatonicMinor: {
+    name: '小調五聲音階',
+    description: '小調五聲音階沒有半音，常用於藍調、搖滾和東亞傳統音樂。',
+    intervals: [0, 3, 5, 7, 10, 12], // 小三全全小三全
+  },
+  blues: {
+    name: '藍調音階',
+    description: '藍調音階在小調五聲音階的基礎上加入藍音，是藍調和爵士中常用的音階。',
+    intervals: [0, 3, 5, 6, 7, 10, 12], // 小三全半全小三全
   },
 };
 
@@ -127,7 +157,11 @@ const ScaleIdentification = ({ level = 1, onComplete }) => {
       case 2: // 中級：加上和聲小調和旋律小調
         return ['major', 'minor', 'harmonicMinor', 'melodicMinor'];
       case 3: // 高級：加上教會調式
-        return ['major', 'minor', 'harmonicMinor', 'melodicMinor', 'dorian', 'phrygian'];
+        return ['major', 'minor', 'harmonicMinor', 'melodicMinor', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'locrian'];
+      case 4: // 爵士調式
+        return ['dorian', 'lydian', 'mixolydian', 'melodicMinor'];
+      case 5: // 世界音樂調式
+        return ['pentatonicMajor', 'pentatonicMinor', 'blues', 'phrygian'];
       default:
         return ['major', 'minor'];
     }
@@ -175,7 +209,8 @@ const ScaleIdentification = ({ level = 1, onComplete }) => {
     const currentTime = Tone.now();
     
     // 播放音階的每個音符
-    currentScale.intervals.forEach((interval, index) => {
+    const intervals = currentScale.intervals || [];
+    intervals.forEach((interval, index) => {
       // 計算MIDI音符編號 (C4 = 60)
       const rootMidiNote = 60 + rootNotes.indexOf(rootNote);
       const midiNote = rootMidiNote + interval;
@@ -190,7 +225,7 @@ const ScaleIdentification = ({ level = 1, onComplete }) => {
     // 設置計時器以在音階播放完畢後重置isPlaying狀態
     setTimeout(() => {
       setIsPlaying(false);
-    }, currentScale.intervals.length * noteSpacing * 1000 + 500);
+    }, intervals.length * noteSpacing * 1000 + 500);
   };
 
   // 選擇答案

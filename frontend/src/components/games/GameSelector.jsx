@@ -84,9 +84,11 @@ const GameSelector = () => {
       icon: <MusicNote className={classes.gameIcon} />,
       component: ScaleIdentification,
       levels: [
-        { level: 1, name: '初級', description: '大調和小調的識別' },
-        { level: 2, name: '中級', description: '和聲小調與旋律小調的識別' },
-        { level: 3, name: '高級', description: '教會調式的識別' },
+        { level: 1, name: '大調與小調基礎', description: '學習識別基本的大調和小調音階' },
+        { level: 2, name: '和聲小調與旋律小調', description: '區分自然小調、和聲小調和旋律小調' },
+        { level: 3, name: '教會調式入門', description: '學習識別七種基本的教會調式' },
+        { level: 4, name: '爵士調式探索', description: '探索常見的爵士調式，如利底亞和混合利底亞' },
+        { level: 5, name: '世界音樂調式', description: '學習來自不同文化的特殊調式，如五聲音階和藍調音階' },
       ],
     },
     {
@@ -96,9 +98,11 @@ const GameSelector = () => {
       icon: <LibraryMusic className={classes.gameIcon} />,
       component: ChordMaster,
       levels: [
-        { level: 1, name: '初級', description: '基本三和弦的識別' },
-        { level: 2, name: '中級', description: '七和弦的識別' },
-        { level: 3, name: '高級', description: '和弦轉位的識別' },
+        { level: 1, name: '基本三和弦', description: '學習識別大三和弦、小三和弦、增三和弦和減三和弦' },
+        { level: 2, name: '七和弦', description: '探索屬七和弦、大七和弦和小七和弦的特性' },
+        { level: 3, name: '和弦轉位', description: '學習識別三和弦和七和弦的各種轉位形式' },
+        { level: 4, name: '擴展和弦', description: '掌握掛留和弦、九和弦和其他擴展和弦' },
+        { level: 5, name: '高級和弦識別', description: '綜合練習各種複雜和弦的聽辨能力' },
       ],
     },
     {
@@ -108,9 +112,11 @@ const GameSelector = () => {
       icon: <Equalizer className={classes.gameIcon} />,
       component: RhythmTraining,
       levels: [
-        { level: 1, name: '初級', description: '基本節奏模式' },
-        { level: 2, name: '中級', description: '複合拍子和切分音' },
-        { level: 3, name: '高級', description: '變換拍號和複雜節奏' },
+        { level: 1, name: '基本節奏模式', description: '學習基本的節奏符號和四分音符節奏' },
+        { level: 2, name: '複合拍子和切分音', description: '探索複合拍子和切分音的應用' },
+        { level: 3, name: '變換拍號和複雜節奏', description: '學習變換拍號和複雜節奏型態' },
+        { level: 4, name: '多連音', description: '練習三連音、五連音等多連音的使用' },
+        { level: 5, name: '節奏即興', description: '創作和模仿複雜的節奏模式' },
       ],
     },
   ];

@@ -168,6 +168,79 @@ const chords = {
     description: '小七和弦由小三和弦加上小七度組成，常用於爵士和流行音樂。',
     intervals: [0, 3, 7, 10], // 根音、小三度、純五度、小七度
   },
+  major1stInv: {
+    name: '大三和弦第一轉位',
+    symbol: '6',
+    description: '大三和弦的第一轉位，將根音移到最高聲部，具有較為溫和的音色。',
+    intervals: [-8, 0, 3], // 三度、五度、根音（以三度為基準）
+    rootOffset: 4, // 原本的根音上移四個半音
+  },
+  minor1stInv: {
+    name: '小三和弦第一轉位',
+    symbol: 'm6',
+    description: '小三和弦的第一轉位，將根音移到最高聲部，常用於連接和弦。',
+    intervals: [-9, 0, 4], // 三度、五度、根音（以三度為基準）
+    rootOffset: 3, // 原本的根音上移三個半音
+  },
+  major2ndInv: {
+    name: '大三和弦第二轉位',
+    symbol: '64',
+    description: '大三和弦的第二轉位，將根音和三度音移到最高聲部，具有不穩定感。',
+    intervals: [-5, 0, 7], // 五度、根音、三度（以五度為基準）
+    rootOffset: 7, // 原本的根音上移七個半音
+  },
+  minor2ndInv: {
+    name: '小三和弦第二轉位',
+    symbol: 'm64',
+    description: '小三和弦的第二轉位，將根音和三度音移到最高聲部，常用於經過和弦。',
+    intervals: [-5, 0, 8], // 五度、根音、三度（以五度為基準）
+    rootOffset: 7, // 原本的根音上移七個半音
+  },
+  dom7_1stInv: {
+    name: '屬七和弦第一轉位',
+    symbol: '65',
+    description: '屬七和弦的第一轉位，低音是三度音，有柔和的推動感。',
+    intervals: [-8, 0, 3, 6], // 三度、五度、七度、根音（以三度為基準）
+    rootOffset: 4, // 原本的根音上移四個半音
+  },
+  dom7_2ndInv: {
+    name: '屬七和弦第二轉位',
+    symbol: '43',
+    description: '屬七和弦的第二轉位，低音是五度音，有明顯的不穩定感。',
+    intervals: [-5, 0, 3, 6], // 五度、七度、根音、三度（以五度為基準）
+    rootOffset: 7, // 原本的根音上移七個半音
+  },
+  dom7_3rdInv: {
+    name: '屬七和弦第三轉位',
+    symbol: '2',
+    description: '屬七和弦的第三轉位，低音是七度音，有強烈的解決傾向。',
+    intervals: [-2, 0, 5, 9], // 七度、根音、三度、五度（以七度為基準）
+    rootOffset: 10, // 原本的根音上移十個半音
+  },
+  sus4: {
+    name: '掛四和弦',
+    symbol: 'sus4',
+    description: '掛四和弦將三度音替換為四度音，有開放、懸置的音色。',
+    intervals: [0, 5, 7], // 根音、四度、五度
+  },
+  sus2: {
+    name: '掛二和弦',
+    symbol: 'sus2',
+    description: '掛二和弦將三度音替換為二度音，有開放、明亮的音色。',
+    intervals: [0, 2, 7], // 根音、二度、五度
+  },
+  ninth: {
+    name: '九和弦',
+    symbol: '9',
+    description: '九和弦在屬七和弦的基礎上加入九度音，豐富了和聲色彩。',
+    intervals: [0, 4, 7, 10, 14], // 根音、大三度、純五度、小七度、九度
+  },
+  minorMaj7: {
+    name: '小大七和弦',
+    symbol: 'mM7',
+    description: '小大七和弦由小三和弦加上大七度組成，帶有獨特的緊張感。',
+    intervals: [0, 3, 7, 11], // 根音、小三度、純五度、大七度
+  },
 };
 
 // 根音列表
@@ -212,7 +285,11 @@ const ChordMaster = ({ level = 1, onComplete }) => {
       case 2: // 中級：加上七和弦
         return ['major', 'minor', 'diminished', 'augmented', 'dominant7', 'major7', 'minor7'];
       case 3: // 高級：加上轉位和弦
-        return ['major', 'minor', 'diminished', 'augmented', 'dominant7', 'major7', 'minor7'];
+        return ['major1stInv', 'minor1stInv', 'major2ndInv', 'minor2ndInv', 'dom7_1stInv', 'dom7_2ndInv', 'dom7_3rdInv'];
+      case 4: // 擴展和弦
+        return ['sus4', 'sus2', 'ninth', 'minorMaj7'];
+      case 5: // 高級和弦識別
+        return ['major', 'minor', 'dominant7', 'major7', 'minor7', 'sus4', 'sus2', 'ninth', 'minorMaj7'];
       default:
         return ['major', 'minor'];
     }
@@ -246,35 +323,61 @@ const ChordMaster = ({ level = 1, onComplete }) => {
     setFeedback('');
     
     // 計算要高亮的琴鍵
-    const chordIntervals = chords[randomChordType].intervals;
-    const rootIndex = rootNotes.indexOf(randomRoot);
-    const keysToHighlight = chordIntervals.map(interval => {
-      const noteIndex = (rootIndex * 2 + interval) % 12; // 簡化的MIDI轉換
-      return noteIndex;
-    });
+    const chord = chords[randomChordType];
+    const rootOffset = chord.rootOffset || 0;
+    const adjustedRootNote = rootOffset ? 
+      rootNotes[(rootNotes.indexOf(randomRoot) + Math.floor(rootOffset / 12)) % rootNotes.length] : 
+      randomRoot;
     
-    setHighlightedKeys(keysToHighlight);
+    const chordIntervals = chord.intervals;
+    const rootIndex = rootNotes.indexOf(adjustedRootNote);
+    const chordNotes = [];
+    
+    for (let i = 0; i < chordIntervals.length; i++) {
+      const interval = chordIntervals[i];
+      const noteIndex = (rootIndex + Math.floor((interval) / 2)) % rootNotes.length;
+      const note = rootNotes[noteIndex];
+      const isSharp = interval % 2 !== 0;
+      
+      if (isSharp) {
+        chordNotes.push(note + '#');
+      } else {
+        chordNotes.push(note);
+      }
+    }
+    
+    setHighlightedKeys(chordNotes);
   };
 
   // 播放和弦
   const playChord = async () => {
     if (!synth || !currentChord || isPlaying) return;
-
+    
     setIsPlaying(true);
     
-    // 計算和弦音符
-    const notes = currentChord.intervals.map(interval => {
-      const rootMidiNote = 60 + rootNotes.indexOf(rootNote);
-      return new Tone.Frequency(rootMidiNote + interval, 'midi').toNote();
-    });
+    // 計算根音的MIDI編號 (C4 = 60)
+    const rootMidiNote = 60 + rootNotes.indexOf(rootNote);
+    
+    // 獲取當前時間
+    const currentTime = Tone.now();
+    
+    // 收集和弦的所有音符
+    const chord = currentChord;
+    const rootOffset = chord.rootOffset || 0;
+    const adjustedRootNote = rootOffset ? rootMidiNote + rootOffset : rootMidiNote;
+    
+    const noteArray = chord.intervals.map(interval => adjustedRootNote + interval);
+    
+    // 將MIDI音符轉換為頻率
+    const frequencyArray = noteArray.map(midiNote => new Tone.Frequency(midiNote, 'midi').toFrequency());
     
     // 播放和弦
-    synth.triggerAttackRelease(notes, '2n');
+    synth.triggerAttackRelease(frequencyArray, 1, currentTime);
     
-    // 設置計時器以在和弦播放完畢後重置isPlaying狀態
+    // 1.5秒後重置狀態
     setTimeout(() => {
       setIsPlaying(false);
-    }, 2000);
+    }, 1500);
   };
 
   // 選擇答案
