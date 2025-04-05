@@ -28,5 +28,5 @@ export default defineConfig({
       }
     }
   },
-  base: '/music-theory-academy/'
+  base: '/'
 })

@@ -11,121 +11,133 @@ import {
   Menu,
   MenuItem,
   Link,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import { Menu as MenuIcon, MusicNote } from '@material-ui/icons';
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { Menu as MenuIcon, MusicNote } from '@mui/icons-material';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-  },
-  appBar: {
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-  },
-  logo: {
-    marginRight: theme.spacing(1),
-    color: theme.palette.primary.contrastText,
-  },
-  title: {
-    flexGrow: 1,
-    fontWeight: 700,
-    '& a': {
-      color: 'inherit',
-      textDecoration: 'none',
-    },
-  },
-  navButton: {
-    marginLeft: theme.spacing(1),
-    fontWeight: 500,
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  flexGrow: 1,
+  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+}));
+
+const StyledLogo = styled(MusicNote)(({ theme }) => ({
+  marginRight: theme.spacing(1),
+  color: theme.palette.primary.contrastText,
+}));
+
+const StyledTitle = styled(Typography)(({ theme }) => ({
+  flexGrow: 1,
+  fontWeight: 700,
+  '& a': {
+    color: 'inherit',
+    textDecoration: 'none',
   },
 }));
 
-const Header = () => {
-  const classes = useStyles();
-  const [anchorEl, setAnchorEl] = React.useState(null);
+const NavButton = styled(Button)(({ theme }) => ({
+  marginLeft: theme.spacing(1),
+  fontWeight: 500,
+}));
 
-  const handleMenuOpen = (event) => {
+const MenuButton = styled(IconButton)(({ theme }) => ({
+  marginRight: theme.spacing(2),
+}));
+
+const Header = () => {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
+  const handleClose = () => {
     setAnchorEl(null);
   };
 
   return (
-    <div className={classes.root}>
-      <AppBar position="static" className={classes.appBar} color="primary">
-        <Container>
-          <Toolbar>
-            <Hidden mdUp>
-              <IconButton
-                edge="start"
-                className={classes.menuButton}
-                color="inherit"
-                aria-label="menu"
-                onClick={handleMenuOpen}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                keepMounted
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-              >
-                <MenuItem onClick={handleMenuClose} component={RouterLink} to="/games">
-                  遊戲
-                </MenuItem>
-                <MenuItem onClick={handleMenuClose} component={RouterLink} to="/resources">
-                  學習資源
-                </MenuItem>
-                <MenuItem onClick={handleMenuClose} component={RouterLink} to="/community">
-                  社區
-                </MenuItem>
-              </Menu>
-            </Hidden>
+    <StyledAppBar position="static" color="default">
+      <Container>
+        <Toolbar>
+          <StyledLogo />
+          <StyledTitle variant="h6">
+            <Link component={RouterLink} to="/">
+              音樂理論學院
+            </Link>
+          </StyledTitle>
 
-            <MusicNote className={classes.logo} />
-            <Typography variant="h6" className={classes.title}>
-              <Link component={RouterLink} to="/">
-                音樂理論遊戲
-              </Link>
-            </Typography>
+          <Hidden smDown>
+            <NavButton color="inherit" component={RouterLink} to="/">
+              首頁
+            </NavButton>
+            <NavButton color="inherit" component={RouterLink} to="/games">
+              練習遊戲
+            </NavButton>
+            <NavButton color="inherit" component={RouterLink} to="/resources">
+              學習資源
+            </NavButton>
+            <NavButton color="inherit" component={RouterLink} to="/community">
+              討論社區
+            </NavButton>
+          </Hidden>
 
-            <Hidden smDown>
-              <Button
-                color="inherit"
-                className={classes.navButton}
+          <Hidden smUp>
+            <MenuButton
+              edge="end"
+              color="inherit"
+              aria-label="menu"
+              onClick={handleMenu}
+            >
+              <MenuIcon />
+            </MenuButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={open}
+              onClose={handleClose}
+            >
+              <MenuItem
+                component={RouterLink}
+                to="/"
+                onClick={handleClose}
+              >
+                首頁
+              </MenuItem>
+              <MenuItem
                 component={RouterLink}
                 to="/games"
+                onClick={handleClose}
               >
-                遊戲
-              </Button>
-              <Button
-                color="inherit"
-                className={classes.navButton}
+                練習遊戲
+              </MenuItem>
+              <MenuItem
                 component={RouterLink}
                 to="/resources"
+                onClick={handleClose}
               >
                 學習資源
-              </Button>
-              <Button
-                color="inherit"
-                className={classes.navButton}
+              </MenuItem>
+              <MenuItem
                 component={RouterLink}
                 to="/community"
+                onClick={handleClose}
               >
-                社區
-              </Button>
-            </Hidden>
-          </Toolbar>
-        </Container>
-      </AppBar>
-    </div>
+                討論社區
+              </MenuItem>
+            </Menu>
+          </Hidden>
+        </Toolbar>
+      </Container>
+    </StyledAppBar>
   );
 };
 
