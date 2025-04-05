@@ -1,73 +1,71 @@
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Typography, Button, Container, Box } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import { MusicNote } from '@material-ui/icons';
+import { Typography, Button, Container, Box } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { MusicNote } from '@mui/icons-material';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '60vh',
-    textAlign: 'center',
-    padding: theme.spacing(4),
-  },
-  icon: {
-    fontSize: 80,
-    color: theme.palette.primary.main,
-    marginBottom: theme.spacing(2),
-  },
-  title: {
-    marginBottom: theme.spacing(2),
-  },
-  subtitle: {
-    marginBottom: theme.spacing(4),
-    color: theme.palette.text.secondary,
-  },
-  button: {
-    marginTop: theme.spacing(2),
-  },
+const NotFoundRoot = styled(Container)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: '60vh',
+  textAlign: 'center',
+  padding: theme.spacing(4),
+}));
+
+const IconWrapper = styled(MusicNote)(({ theme }) => ({
+  fontSize: 80,
+  color: theme.palette.primary.main,
+  marginBottom: theme.spacing(2),
+}));
+
+const Title = styled(Typography)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+}));
+
+const Subtitle = styled(Typography)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  color: theme.palette.text.secondary,
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(2),
 }));
 
 const NotFound = () => {
-  const classes = useStyles();
-
   return (
-    <Container className={classes.root}>
-      <MusicNote className={classes.icon} />
-      <Typography variant="h2" className={classes.title}>
+    <NotFoundRoot>
+      <IconWrapper />
+      <Title variant="h2">
         404
-      </Typography>
-      <Typography variant="h4" className={classes.title}>
+      </Title>
+      <Title variant="h4">
         頁面未找到
-      </Typography>
-      <Typography variant="subtitle1" className={classes.subtitle}>
+      </Title>
+      <Subtitle variant="subtitle1">
         很抱歉，您要查找的頁面不存在或已被移除。
-      </Typography>
+      </Subtitle>
       <Box>
-        <Button
+        <ActionButton
           variant="contained"
           color="primary"
-          className={classes.button}
           component={RouterLink}
           to="/"
         >
           返回首頁
-        </Button>
-        <Button
+        </ActionButton>
+        <ActionButton
           variant="outlined"
           color="primary"
-          className={classes.button}
           component={RouterLink}
           to="/games"
-          style={{ marginLeft: '16px' }}
+          sx={{ marginLeft: '16px' }}
         >
           瀏覽遊戲
-        </Button>
+        </ActionButton>
       </Box>
-    </Container>
+    </NotFoundRoot>
   );
 };
 
