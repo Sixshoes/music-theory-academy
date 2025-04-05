@@ -589,8 +589,8 @@ const GamePlay = () => {
   const [userId, setUserId] = useState('user123'); // 模擬用戶ID，實際應用中應從登錄信息獲取
   const [currentQuestion, setCurrentQuestion] = useState(1); // 當前問題編號
   const [totalQuestions, setTotalQuestions] = useState(10); // 總問題數
-  const [volume, setVolume] = useState(0.7); // 音量控制，0-1之間的值
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false); // 控制音量滑塊顯示
+  const [volume, setVolume] = useState(0.3); // 降低默認音量至 30%
+  const [showVolumeWarning, setShowVolumeWarning] = useState(true); // 顯示音量警告提示
   const [showHelpDialog, setShowHelpDialog] = useState(false); // 控制幫助對話框顯示
   const [showAudioPrompt, setShowAudioPrompt] = useState(true); // 顯示音頻啟動提示
   const [isOfflineMode, setIsOfflineMode] = useState(false); // 離線模式標誌
@@ -644,19 +644,9 @@ const GamePlay = () => {
     Tone.Destination.volume.value = Tone.gainToDb(volume); // 轉換線性音量到分貝
   }, [volume]);
   
-  // 處理音量變化
-  const handleVolumeChange = (event, newValue) => {
-    setVolume(newValue);
-  };
-  
-  // 切換音量滑塊顯示
-  const toggleVolumeSlider = () => {
-    setShowVolumeSlider(!showVolumeSlider);
-  };
-  
-  // 切換幫助對話框顯示
-  const toggleHelpDialog = () => {
-    setShowHelpDialog(!showHelpDialog);
+  // 關閉音量警告
+  const handleCloseVolumeWarning = () => {
+    setShowVolumeWarning(false);
   };
   
   // 從後端獲取分數
@@ -785,6 +775,11 @@ const GamePlay = () => {
         alert('無法啟動音頻。請確保您的瀏覽器允許播放聲音，或嘗試點擊頁面任意處。');
       });
       return;
+    }
+    
+    // 如果顯示音量警告，先確認用戶已關閉警告
+    if (showVolumeWarning) {
+      setShowVolumeWarning(false);
     }
     
     setIsPlaying(true);
@@ -1037,15 +1032,6 @@ const GamePlay = () => {
           </span>
         </Tooltip>
 
-        <Tooltip title="音量設置">
-          <IconButton
-            className={classes.controlButton}
-            onClick={toggleVolumeSlider}
-          >
-            <VolumeUp />
-          </IconButton>
-        </Tooltip>
-
         <Tooltip title="幫助">
           <IconButton
             className={classes.controlButton}
@@ -1229,10 +1215,10 @@ const GamePlay = () => {
         </Grid>
       </Grid>
 
-      {/* 音量滑塊 */}
+      {/* 音量警告對話框 */}
       <Dialog
-        open={showVolumeSlider}
-        onClose={toggleVolumeSlider}
+        open={showVolumeWarning}
+        onClose={handleCloseVolumeWarning}
         PaperProps={{
           style: {
             borderRadius: '16px',
@@ -1245,26 +1231,25 @@ const GamePlay = () => {
         <DialogTitle className={classes.dialogTitle}>
           <Typography>
             <VolumeUp style={{ marginRight: 8 }} />
-            調整音量
+            音量提示
           </Typography>
         </DialogTitle>
         <DialogContent className={classes.dialogContent}>
-          <Box py={1} px={3} width={300}>
-            <Slider
-              className={classes.volumeSlider}
-              value={volume}
-              onChange={handleVolumeChange}
-              valueLabelDisplay="auto"
-              valueLabelFormat={value => `${value}%`}
-              aria-labelledby="volume-slider"
-              min={0}
-              max={100}
-            />
-          </Box>
+          <Typography style={{ marginBottom: 20 }}>
+            即將播放音頻，請注意您的裝置音量已適當調整，以避免音量過大造成不適。
+          </Typography>
         </DialogContent>
         <DialogActions className={classes.dialogActions}>
-          <Button onClick={toggleVolumeSlider} color="primary">
-            關閉
+          <Button 
+            onClick={handleCloseVolumeWarning}
+            style={{
+              background: 'linear-gradient(90deg, #3f51b5, #00f2fe)',
+              color: 'white',
+              borderRadius: '8px',
+              padding: '6px 16px',
+            }}
+          >
+            我了解了
           </Button>
         </DialogActions>
       </Dialog>
@@ -1366,6 +1351,9 @@ const GamePlay = () => {
         <DialogContent className={classes.dialogContent}>
           <Typography style={{ marginBottom: 20 }}>
             為了能夠播放音頻，瀏覽器需要您的交互操作。請點擊下面的按鈕來啟動音頻。
+          </Typography>
+          <Typography style={{ marginBottom: 20, color: '#f8d568' }}>
+            注意：音量已預設為較低水平，請確保您的裝置音量設置得當，以獲得最佳體驗。
           </Typography>
         </DialogContent>
         <DialogActions className={classes.dialogActions}>
