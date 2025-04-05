@@ -575,6 +575,17 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     overflow: 'hidden',
   },
+  chordButton: {
+    margin: '8px',
+    minWidth: '120px',
+    background: 'rgba(17, 19, 35, 0.7)',
+    backdropFilter: 'blur(5px)',
+    border: '1px solid rgba(63, 81, 181, 0.3)',
+    borderRadius: '12px',
+    padding: '10px 16px',
+    color: '#a0a8d9',
+    transition: 'all 0.3s ease',
+  },
 }));
 
 const GamePlay = () => {
@@ -594,6 +605,7 @@ const GamePlay = () => {
   const [showHelpDialog, setShowHelpDialog] = useState(false); // 控制幫助對話框顯示
   const [showAudioPrompt, setShowAudioPrompt] = useState(true); // 顯示音頻啟動提示
   const [isOfflineMode, setIsOfflineMode] = useState(false); // 離線模式標誌
+  const [gameMode, setGameMode] = useState('chords'); // 遊戲模式：'chords'為單和弦辨識，'progressions'為和弦進行辨識
   const effectiveGameId = gameId || '1'; // 如果 gameId 未定義，使用默認值 '1'
   
   // 生成視覺化效果的隨機條形
@@ -763,6 +775,28 @@ const GamePlay = () => {
     resetScoreOnServer();
   };
 
+  // 獲取當前問題的正確答案
+  const getCorrectAnswer = () => {
+    if (gameMode === 'chords') {
+      switch(currentQuestion % 5) {
+        case 1: return "major"; // 大三和弦
+        case 2: return "minor"; // 小三和弦
+        case 3: return "augmented"; // 增三和弦
+        case 4: return "diminished"; // 減三和弦
+        case 0: return "dominant7"; // 屬七和弦
+        default: return "major";
+      }
+    } else {
+      // 和弦進行模式
+      switch(currentQuestion % 3) {
+        case 1: return "251"; // 2-5-1進行
+        case 2: return "1645"; // 1-6-4-5進行
+        case 0: return "1564"; // 1-5-6-4進行
+        default: return "251";
+      }
+    }
+  };
+
   // 播放音頻函數
   const playAudio = () => {
     // 初始化音頻
@@ -796,23 +830,49 @@ const GamePlay = () => {
       // 根據當前問題生成不同的音頻
       const now = Tone.now();
       
-      // 根據當前問題編號生成不同類型的音樂問題
-      switch(currentQuestion % 5) {
-        case 1: // 大三和弦
-          synth.triggerAttackRelease(["C4", "E4", "G4"], "2n", now);
-          break;
-        case 2: // 小三和弦
-          synth.triggerAttackRelease(["C4", "Eb4", "G4"], "2n", now);
-          break;
-        case 3: // 增三和弦
-          synth.triggerAttackRelease(["C4", "E4", "G#4"], "2n", now);
-          break;
-        case 4: // 減三和弦
-          synth.triggerAttackRelease(["C4", "Eb4", "Gb4"], "2n", now);
-          break;
-        case 0: // 屬七和弦
-          synth.triggerAttackRelease(["C4", "E4", "G4", "Bb4"], "2n", now);
-          break;
+      // 獲取當前問題的答案
+      const correctAnswer = getCorrectAnswer();
+      
+      if (gameMode === 'chords') {
+        // 單和弦模式
+        switch(currentQuestion % 5) {
+          case 1: // 大三和弦
+            synth.triggerAttackRelease(["C4", "E4", "G4"], "2n", now);
+            break;
+          case 2: // 小三和弦
+            synth.triggerAttackRelease(["C4", "Eb4", "G4"], "2n", now);
+            break;
+          case 3: // 增三和弦
+            synth.triggerAttackRelease(["C4", "E4", "G#4"], "2n", now);
+            break;
+          case 4: // 減三和弦
+            synth.triggerAttackRelease(["C4", "Eb4", "Gb4"], "2n", now);
+            break;
+          case 0: // 屬七和弦
+            synth.triggerAttackRelease(["C4", "E4", "G4", "Bb4"], "2n", now);
+            break;
+        }
+      } else {
+        // 和弦進行模式
+        switch(currentQuestion % 3) {
+          case 1: // 2-5-1進行 (Dm7-G7-CMaj7)
+            synth.triggerAttackRelease(["D4", "F4", "A4", "C5"], "1n", now);
+            synth.triggerAttackRelease(["G3", "B3", "D4", "F4"], "1n", now + 1);
+            synth.triggerAttackRelease(["C4", "E4", "G4", "B4"], "1n", now + 2);
+            break;
+          case 2: // 1-6-4-5進行 (CMaj7-Am7-FMaj7-G7)
+            synth.triggerAttackRelease(["C4", "E4", "G4", "B4"], "1n", now);
+            synth.triggerAttackRelease(["A3", "C4", "E4", "G4"], "1n", now + 1);
+            synth.triggerAttackRelease(["F3", "A3", "C4", "E4"], "1n", now + 2);
+            synth.triggerAttackRelease(["G3", "B3", "D4", "F4"], "1n", now + 3);
+            break;
+          case 0: // 1-5-6-4進行 (CMaj7-G7-Am7-FMaj7)
+            synth.triggerAttackRelease(["C4", "E4", "G4", "B4"], "1n", now);
+            synth.triggerAttackRelease(["G3", "B3", "D4", "F4"], "1n", now + 1);
+            synth.triggerAttackRelease(["A3", "C4", "E4", "G4"], "1n", now + 2);
+            synth.triggerAttackRelease(["F3", "A3", "C4", "E4"], "1n", now + 3);
+            break;
+        }
       }
       
       // 模擬音頻播放和視覺化效果
@@ -823,12 +883,15 @@ const GamePlay = () => {
       // 每200毫秒更新一次視覺化效果
       const visualizerInterval = setInterval(updateVisualizer, 200);
       
-      // 3秒後音頻播放結束
+      // 根據模式設置播放時長
+      const playDuration = gameMode === 'chords' ? 3000 : 5000;
+      
+      // 播放結束後停止視覺化效果
       setTimeout(() => {
         setIsPlaying(false);
         clearInterval(visualizerInterval);
         setVisualizerBars(visualizerBars.map(() => 0));
-      }, 3000);
+      }, playDuration);
     } catch (error) {
       console.error('播放音頻時出錯:', error);
       setIsPlaying(false);
@@ -836,8 +899,9 @@ const GamePlay = () => {
     }
   };
 
-  // 改進提交答案的方法
-  const submitAnswer = (correct) => {
+  // 提交答案
+  const submitAnswer = (answer) => {
+    const correct = answer === getCorrectAnswer();
     setIsCorrect(correct);
     setShowFeedback(true);
     
@@ -933,7 +997,7 @@ const GamePlay = () => {
       {renderUserInfo()}
       
       <Typography variant="h6" gutterBottom style={{ color: '#a0a8d9' }}>
-        難度選擇
+        學習模式選擇
       </Typography>
       
       <Box display="flex" flexWrap="wrap" justifyContent="center">
@@ -941,30 +1005,42 @@ const GamePlay = () => {
           variant="contained" 
           color="primary" 
           fullWidth 
-          className={`${classes.difficultyButton} ${classes.activeOption}`}
+          className={`${classes.difficultyButton} ${gameMode === 'chords' ? classes.activeOption : ''}`}
           style={{ marginBottom: 16 }}
           startIcon={<MusicNote />}
+          onClick={() => setGameMode('chords')}
         >
-          初級模式
+          單和弦聽辨
+          <Box fontSize="12px" marginTop="4px" color="#a0a8d9">
+            辨識不同和弦類型的音色特性
+          </Box>
+        </Button>
+        <Button 
+          variant="outlined" 
+          color="primary" 
+          fullWidth
+          className={`${classes.difficultyButton} ${gameMode === 'progressions' ? classes.activeOption : ''}`}
+          style={{ marginBottom: 16 }}
+          startIcon={<MusicNote />}
+          onClick={() => setGameMode('progressions')}
+        >
+          和弦進行練習
+          <Box fontSize="12px" marginTop="4px" color="#a0a8d9">
+            辨識流行音樂中常用的和弦進行
+          </Box>
         </Button>
         <Button 
           variant="outlined" 
           color="primary" 
           fullWidth
           className={classes.difficultyButton}
-          style={{ marginBottom: 16 }}
           startIcon={<MusicNote />}
+          disabled
         >
-          中級模式
-        </Button>
-        <Button 
-          variant="outlined" 
-          color="primary" 
-          fullWidth
-          className={classes.difficultyButton}
-          startIcon={<MusicNote />}
-        >
-          高級模式
+          實際創作應用
+          <Box fontSize="12px" marginTop="4px" color="#a0a8d9">
+            即將推出：將和弦應用於創作實踐
+          </Box>
         </Button>
       </Box>
       
@@ -1065,60 +1141,212 @@ const GamePlay = () => {
                 <div className={classes.scanline}></div>
                 {renderGameControls()}
                 
-                {/* 鋼琴鍵盤 */}
-                <Box className={classes.keyboardContainer}>
-                  {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map((note, index) => {
-                    const isBlack = note.includes('#');
-                    return (
-                      <Box
-                        key={note}
-                        className={`${classes.pianoKey} ${isBlack ? classes.blackKey : classes.whiteKey}`}
-                        onClick={() => submitAnswer(Math.random() > 0.5)}
-                        sx={{
-                          '&:hover': {
-                            boxShadow: isBlack
-                              ? '0 0 15px rgba(63, 81, 181, 0.8), 0 0 5px rgba(0, 242, 254, 0.5)'
-                              : '0 0 20px rgba(63, 81, 181, 0.8), 0 0 10px rgba(0, 242, 254, 0.6)',
-                            transform: 'translateY(-3px)',
-                            transition: 'all 0.2s ease',
-                          },
-                          '&:active': {
-                            boxShadow: isBlack
-                              ? '0 0 25px rgba(63, 81, 181, 1), 0 0 10px rgba(0, 242, 254, 0.8)'
-                              : '0 0 30px rgba(63, 81, 181, 1), 0 0 15px rgba(0, 242, 254, 0.9)',
-                            transform: 'translateY(0)',
-                          },
-                          position: 'relative',
-                          '&::after': isBlack ? {
-                            content: '""',
-                            position: 'absolute',
-                            bottom: 0,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            width: '8px',
-                            height: '2px',
-                            background: 'rgba(0, 242, 254, 0.6)',
-                            borderRadius: '1px',
-                            opacity: 0,
-                            transition: 'opacity 0.3s ease',
-                          } : {},
-                          '&:hover::after': isBlack ? {
-                            opacity: 1,
-                          } : {},
-                        }}
-                      >
-                        {!isBlack && (
-                          <Box className={classes.keyLabel} sx={{
-                            color: '#3f51b5',
-                            fontWeight: 'bold',
-                            textShadow: '0 0 5px rgba(63, 81, 181, 0.3)',
-                          }}>
-                            {note}
+                {/* 和弦選擇區域，替換原來的鋼琴鍵盤 */}
+                <Box className={classes.keyboardContainer} style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h6" style={{ marginBottom: '16px', color: '#a0a8d9', textAlign: 'center' }}>
+                    {gameMode === 'chords' 
+                      ? '聽聲音辨識和弦類型，在創作中掌握正確的和聲運用' 
+                      : '辨識常見和弦進行，掌握流行音樂創作的和聲基礎'}
+                  </Typography>
+                  
+                  <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
+                    {gameMode === 'chords' ? (
+                      <>
+                        <Button
+                          variant="contained"
+                          className={classes.chordButton}
+                          onClick={() => submitAnswer("major")}
+                          style={{
+                            margin: '8px',
+                            minWidth: '120px',
+                            background: 'rgba(17, 19, 35, 0.7)',
+                            backdropFilter: 'blur(5px)',
+                            border: '1px solid rgba(63, 81, 181, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 16px',
+                            color: '#a0a8d9',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          大三和弦 (Major)
+                          <Box fontSize="12px" mt={1} color="#00f2fe">
+                            明亮、開闊感，常用於歡快情緒
                           </Box>
-                        )}
-                      </Box>
-                    );
-                  })}
+                        </Button>
+                        
+                        <Button
+                          variant="contained"
+                          className={classes.chordButton}
+                          onClick={() => submitAnswer("minor")}
+                          style={{
+                            margin: '8px',
+                            minWidth: '120px',
+                            background: 'rgba(17, 19, 35, 0.7)',
+                            backdropFilter: 'blur(5px)',
+                            border: '1px solid rgba(63, 81, 181, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 16px',
+                            color: '#a0a8d9',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          小三和弦 (Minor)
+                          <Box fontSize="12px" mt={1} color="#00f2fe">
+                            深沉、憂鬱感，常用於抒情曲調
+                          </Box>
+                        </Button>
+                        
+                        <Button
+                          variant="contained"
+                          className={classes.chordButton}
+                          onClick={() => submitAnswer("augmented")}
+                          style={{
+                            margin: '8px',
+                            minWidth: '120px',
+                            background: 'rgba(17, 19, 35, 0.7)',
+                            backdropFilter: 'blur(5px)',
+                            border: '1px solid rgba(63, 81, 181, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 16px',
+                            color: '#a0a8d9',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          增三和弦 (Augmented)
+                          <Box fontSize="12px" mt={1} color="#00f2fe">
+                            緊張懸疑感，常用於轉調過渡
+                          </Box>
+                        </Button>
+                        
+                        <Button
+                          variant="contained"
+                          className={classes.chordButton}
+                          onClick={() => submitAnswer("diminished")}
+                          style={{
+                            margin: '8px',
+                            minWidth: '120px',
+                            background: 'rgba(17, 19, 35, 0.7)',
+                            backdropFilter: 'blur(5px)',
+                            border: '1px solid rgba(63, 81, 181, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 16px',
+                            color: '#a0a8d9',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          減三和弦 (Diminished)
+                          <Box fontSize="12px" mt={1} color="#00f2fe">
+                            不安定感，常用於戲劇性轉折
+                          </Box>
+                        </Button>
+                        
+                        <Button
+                          variant="contained"
+                          className={classes.chordButton}
+                          onClick={() => submitAnswer("dominant7")}
+                          style={{
+                            margin: '8px',
+                            minWidth: '120px',
+                            background: 'rgba(17, 19, 35, 0.7)',
+                            backdropFilter: 'blur(5px)',
+                            border: '1px solid rgba(63, 81, 181, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 16px',
+                            color: '#a0a8d9',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          屬七和弦 (Dominant 7th)
+                          <Box fontSize="12px" mt={1} color="#00f2fe">
+                            帶有張力與解決感，常用於終止式
+                          </Box>
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="contained"
+                          className={classes.chordButton}
+                          onClick={() => submitAnswer("251")}
+                          style={{
+                            margin: '8px',
+                            minWidth: '170px',
+                            background: 'rgba(17, 19, 35, 0.7)',
+                            backdropFilter: 'blur(5px)',
+                            border: '1px solid rgba(63, 81, 181, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 16px',
+                            color: '#a0a8d9',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          2-5-1 進行
+                          <Box fontSize="12px" mt={1} color="#00f2fe">
+                            終止式，強烈的結束感
+                          </Box>
+                          <Box fontSize="11px" mt={0.5} color="#a0a8d9">
+                            Dm7 - G7 - CMaj7
+                          </Box>
+                        </Button>
+                        
+                        <Button
+                          variant="contained"
+                          className={classes.chordButton}
+                          onClick={() => submitAnswer("1645")}
+                          style={{
+                            margin: '8px',
+                            minWidth: '170px',
+                            background: 'rgba(17, 19, 35, 0.7)',
+                            backdropFilter: 'blur(5px)',
+                            border: '1px solid rgba(63, 81, 181, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 16px',
+                            color: '#a0a8d9',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          1-6-4-5 進行
+                          <Box fontSize="12px" mt={1} color="#00f2fe">
+                            流行經典進行，歌謠風格
+                          </Box>
+                          <Box fontSize="11px" mt={0.5} color="#a0a8d9">
+                            CMaj7 - Am7 - FMaj7 - G7
+                          </Box>
+                        </Button>
+                        
+                        <Button
+                          variant="contained"
+                          className={classes.chordButton}
+                          onClick={() => submitAnswer("1564")}
+                          style={{
+                            margin: '8px',
+                            minWidth: '170px',
+                            background: 'rgba(17, 19, 35, 0.7)',
+                            backdropFilter: 'blur(5px)',
+                            border: '1px solid rgba(63, 81, 181, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 16px',
+                            color: '#a0a8d9',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          1-5-6-4 進行
+                          <Box fontSize="12px" mt={1} color="#00f2fe">
+                            流行抒情曲常用進行
+                          </Box>
+                          <Box fontSize="11px" mt={0.5} color="#a0a8d9">
+                            CMaj7 - G7 - Am7 - FMaj7
+                          </Box>
+                        </Button>
+                      </>
+                    )}
+                  </Box>
+                  
+                  <Typography variant="body2" style={{ margin: '16px auto', color: '#a0a8d9', textAlign: 'center', maxWidth: '90%' }}>
+                    {gameMode === 'chords' 
+                      ? '提示：當您在創作時，不同和弦能創造不同的情感氛圍。聆聽後選擇正確的和弦類型，學習如何在您的創作中運用這些和聲色彩。'
+                      : '提示：和弦進行是流行歌曲創作的基礎，不同進行創造不同風格與情感。聆聽後選擇正確的和弦進行，加強您的創作技巧。'}
+                  </Typography>
                 </Box>
                 
                 {/* 反饋信息 */}
@@ -1286,38 +1514,47 @@ const GamePlay = () => {
             如何遊玩
           </Typography>
           <Box component="ol" style={{ color: '#a0a8d9', paddingLeft: '24px' }}>
+            <li style={{ margin: '8px 0' }}>選擇學習模式：單和弦聽辨或和弦進行練習</li>
             <li style={{ margin: '8px 0' }}>點擊播放按鈕聆聽音樂</li>
-            <li style={{ margin: '8px 0' }}>根據您聽到的聲音，選擇正確的和弦類型</li>
+            <li style={{ margin: '8px 0' }}>根據聽到的內容，選擇正確的和弦類型或和弦進行</li>
             <li style={{ margin: '8px 0' }}>每次正確回答可獲得10分</li>
-            <li style={{ margin: '8px 0' }}>您可以任意次數重複播放音頻</li>
           </Box>
           
           <hr className={classes.cyberpunkDivider} />
           
           <Typography variant="h6" gutterBottom style={{ color: '#00f2fe' }}>
             <MusicNote style={{ marginRight: 8 }} />
-            遊戲中的和弦類型
+            創作應用
+          </Typography>
+          <Typography variant="body2" style={{ color: '#a0a8d9', marginBottom: '16px' }}>
+            理解和弦類型及其進行是音樂創作的核心要素。這些知識將直接幫助您：
           </Typography>
           <Grid container spacing={2} style={{ marginTop: '8px' }}>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 大三和弦 (Major)</Typography>
+            <Grid item xs={12}>
+              <Typography variant="body2" style={{ color: '#a0a8d9' }}>
+                • <b>豐富情感表達</b>：不同和弦具有獨特的情感特性，讓您能精確表達作品的情感色彩。
+              </Typography>
             </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 小三和弦 (Minor)</Typography>
+            <Grid item xs={12}>
+              <Typography variant="body2" style={{ color: '#a0a8d9' }}>
+                • <b>建立和聲架構</b>：流行音樂中的經典和弦進行能為您的創作提供穩固的和聲基礎。
+              </Typography>
             </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 增三和弦 (Augmented)</Typography>
+            <Grid item xs={12}>
+              <Typography variant="body2" style={{ color: '#a0a8d9' }}>
+                • <b>創造曲風特色</b>：特定的和弦組合和進行能塑造不同音樂風格的獨特特徵。
+              </Typography>
             </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 減三和弦 (Diminished)</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 大七和弦 (Major 7th)</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="body2" style={{ color: '#a0a8d9' }}>• 屬七和弦 (Dominant 7th)</Typography>
+            <Grid item xs={12}>
+              <Typography variant="body2" style={{ color: '#a0a8d9' }}>
+                • <b>突破創作瓶頸</b>：掌握多種和弦進行模式，幫助您在創作停滯時找到新的靈感。
+              </Typography>
             </Grid>
           </Grid>
+          
+          <Typography variant="body2" style={{ color: '#00f2fe', marginTop: '16px', fontStyle: 'italic' }}>
+            練習辨識這些和弦及其進行能讓您在創作時更有意識地選擇合適的和聲結構，為聽眾帶來更豐富的音樂體驗。
+          </Typography>
         </DialogContent>
         <DialogActions className={classes.dialogActions}>
           <Button 
@@ -1359,6 +1596,9 @@ const GamePlay = () => {
           </Typography>
           <Typography style={{ marginBottom: 20, color: '#f8d568' }}>
             注意：音量已預設為較低水平，請確保您的裝置音量設置得當，以獲得最佳體驗。
+          </Typography>
+          <Typography style={{ color: '#00f2fe' }}>
+            本遊戲專為音樂創作學習設計，通過聆聽和辨識不同和弦類型，幫助您在實際創作中選擇合適的和聲色彩。
           </Typography>
         </DialogContent>
         <DialogActions className={classes.dialogActions}>
