@@ -35,6 +35,7 @@
   font-weight: 400;
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7p4HMA.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -43,6 +44,7 @@
   font-weight: 500;
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7pb0EPE.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -51,6 +53,7 @@
   font-weight: 600;
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7pbYF_E.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -59,36 +62,7 @@
   font-weight: 700;
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/rajdhani/v15/LDI2apCSOBg7S-QT7pa8FvE.woff2) format('woff2');
-}
-
-@font-face {
-  font-family: 'Rajdhani';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Rajdhani Regular'), local('Rajdhani-Regular'),
-       url('/fonts/rajdhani-regular.woff2') format('woff2'),
-       url('/fonts/rajdhani-regular.woff') format('woff');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Rajdhani';
-  font-style: normal;
-  font-weight: 500;
-  src: local('Rajdhani Medium'), local('Rajdhani-Medium'),
-       url('/fonts/rajdhani-medium.woff2') format('woff2'),
-       url('/fonts/rajdhani-medium.woff') format('woff');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Rajdhani';
-  font-style: normal;
-  font-weight: 600;
-  src: local('Rajdhani SemiBold'), local('Rajdhani-SemiBold'),
-       url('/fonts/rajdhani-semibold.woff2') format('woff2'),
-       url('/fonts/rajdhani-semibold.woff') format('woff');
-  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 body, html {
