@@ -649,6 +649,11 @@ const GamePlay = () => {
     setShowVolumeWarning(false);
   };
   
+  // 切換幫助對話框顯示
+  const toggleHelpDialog = () => {
+    setShowHelpDialog(!showHelpDialog);
+  };
+  
   // 從後端獲取分數
   useEffect(() => {
     if (userId) {

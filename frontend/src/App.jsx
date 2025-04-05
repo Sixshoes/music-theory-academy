@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Container, ThemeProvider, createTheme, Button, Snackbar, CssBaseline } from '@material-ui/core';
-import { VolumeUp } from '@material-ui/icons';
+import { Container, ThemeProvider, createTheme, Button, Snackbar, CssBaseline, IconButton } from '@material-ui/core';
+import { VolumeUp, Close } from '@material-ui/icons';
 import * as Tone from 'tone';
 import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
@@ -212,13 +212,22 @@ export { theme };
 // 音頻上下文初始化組件
 function AudioInitializer() {
   const [audioInitialized, setAudioInitialized] = useState(false);
+  const [showSnackbar, setShowSnackbar] = useState(false);
   
   // 處理用戶交互，初始化音頻上下文
   const initializeAudio = () => {
     if (!audioInitialized) {
+      // 設置較低的默認音量
+      if (Tone.Destination) {
+        // 設置音量為 30% (約 -10dB)
+        Tone.Destination.volume.value = Tone.gainToDb(0.3);
+      }
+      
       Tone.start().then(() => {
         console.log('音頻上下文已啟動');
         setAudioInitialized(true);
+        // 顯示音量提示
+        setShowSnackbar(true);
       }).catch(e => console.error('啟動音頻上下文失敗:', e));
     }
   };
@@ -238,7 +247,28 @@ function AudioInitializer() {
     };
   }, []);
   
-  return null; // 這個組件不渲染任何UI
+  const handleCloseSnackbar = () => {
+    setShowSnackbar(false);
+  };
+  
+  return (
+    <Snackbar
+      open={showSnackbar}
+      autoHideDuration={6000}
+      onClose={handleCloseSnackbar}
+      message="音頻已啟用，音量已設置為較低水平，請注意調整您的裝置音量以獲得最佳體驗"
+      action={
+        <IconButton
+          size="small"
+          aria-label="close"
+          color="inherit"
+          onClick={handleCloseSnackbar}
+        >
+          <Close fontSize="small" />
+        </IconButton>
+      }
+    />
+  );
 }
 
 const App = () => {
